@@ -1,0 +1,40 @@
+[Unit]
+Description=AIVID Health Monitor peer monitoring service
+After=network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=120
+StartLimitBurst=10
+
+[Service]
+Type=simple
+User=aivid-health
+Group=aivid-health
+ExecStart=@@ROOT@@/opt/aivid-health/current/venv/bin/aivid-monitor serve --config @@ROOT@@/etc/aivid-health/node.json
+WorkingDirectory=@@ROOT@@/opt/aivid-healthmonitor/data
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+Nice=10
+IOSchedulingClass=idle
+CPUAccounting=true
+CPUQuota=20%
+MemoryAccounting=true
+MemoryHigh=256M
+MemoryMax=384M
+TasksMax=64
+UMask=0077
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=@@ROOT@@/opt/aivid-healthmonitor/data
+PrivateTmp=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+CapabilityBoundingSet=
+
+[Install]
+WantedBy=multi-user.target

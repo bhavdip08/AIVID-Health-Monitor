@@ -1,0 +1,125 @@
+HISTORICAL NOTES FROM 2 OCTOBER 2026
+For the current release, signing identity and installation steps use
+RELEASE_NOTES.txt and the report beside the installer.
+The historical key fingerprint and test claims below are not for 1.1.0.
+
+AIVID HEALTH MONITOR - INSTALLER REPAIR NOTES
+Product 1.0.0 | Build 1.0.0-20261002.repair1 | 2 October 2026
+
+WHY THE TWO ERRORS HAPPENED
+1. "pkeyutl: Option unknown option -rawin"
+   The old bootstrap required an OpenSSL command-line capability unavailable on
+   the demo host. OpenSSL 1.1.1 pkeyutl cannot verify Ed25519 signatures. A valid
+   .run SHA256 checksum confirms file integrity, not host compatibility.
+2. "runuser ... venv/bin/python: Permission denied"
+   The root validation completed, but the aivid-health identity could not execute
+   the interpreter. The uploaded source already sets code permissions to 755.
+   The log does not identify the exact denied path. Parent traversal permissions,
+   inherited named ACLs or a host security policy must be checked. A noexec mount
+   is also reported by diagnostics, although root execution succeeding makes a
+   blanket noexec restriction less likely. chmod -R 777 did not fix this error.
+
+WHAT CHANGED
+- Offline release signature verification uses RSA-3072/SHA256 with openssl dgst.
+  Both signatures, all file hashes and the bundled runtime hash remain required.
+  A failed verification aborts. No signature or checksum bypass is provided.
+- A new repair signing identity was generated for this rebuild. This is NOT the
+  original publisher's Ed25519 signature. The original private key was not in
+  the supplied package. Public-key PEM SHA256:
+  91d49fb2c708c385028f96f22244ca84a933642e92f6f574d015a13244df267f
+  The private repair signing key is excluded from all deliverables. Source build
+  instructions show how to use your organization's own signing key for releases.
+- Host compatibility is checked before the setup wizard creates persistent data.
+  Dependency imports are tested before installation. Host OS support remains
+  Linux x86_64: Ubuntu 22.04/24.04 or Debian 12, with systemd.
+  The cryptography wheel requires glibc >= 2.34. Ubuntu 18.04/20.04 are NOT made
+  supported by this OpenSSL repair. Do not upgrade a production OS for this tool;
+  request a matching package with the --diagnose output if the host is older.
+- Correct 755/644 code permissions and inherited ACL cleanup are restricted to
+  this monitor's installation directories/new release. Private setup and data
+  become 700 directories / 600 files; configuration is root-owned and readable
+  by the monitor group (750 directory / 640 files). Secrets formerly made 777
+  are made private. Revoke/rotate secrets separately if they were exposed.
+- Shared /opt and /etc permissions and ACLs are NOT changed. If they block the
+  service account, the installer stops and requests diagnosis. It does not run
+  the service as root or disable AppArmor/SELinux to get around that restriction.
+- Unrecognized service units, unrelated command names, redirected monitor paths,
+  and links/hard links in private monitor data fail without overwriting them.
+- A runuser import/configuration check still runs before activation. Failure
+  prints path/mount diagnostics and restores the previous monitor release where
+  one exists. An interrupted first setup can be resumed; chosen login is retained.
+- The systemd service has Nice=10, idle I/O priority, CPUQuota=20% (one fifth of
+  one CPU core), MemoryHigh=256M, MemoryMax=384M and TasksMax=64. Limits apply to
+  the running monitor under systemd, not the one-time installer or manual runs.
+  Linux controller support/site policies determine enforcement; inspect with
+  systemctl show after installation. Reaching the memory limit can restart only
+  this monitor. The limit is not a guarantee of zero impact on shared resources.
+
+EXISTING WORKLOADS
+No apt operations, global pip installs, OS/OpenSSL/Python/driver upgrades, reboot,
+firewall changes, Kubernetes mutations, container-runtime restarts or GPU compute
+jobs are performed. Only aivid-health.service is managed. The installed Kubernetes
+health-monitor pods are separate and are not changed. GPU collection is the
+existing read-only nvidia-smi --query-gpu call, cached for 60 seconds.
+CPU/RAM/local disk metrics default to 30 seconds; history to 60 seconds. Network
+filesystems and container duplicate mounts are excluded from automatic disk checks.
+The monitor still consumes some CPU, RAM, disk I/O and network bandwidth.
+
+EXPECTED WRITES
+/opt/aivid-health/                  code releases/current link
+/opt/aivid-healthmonitor/           monitor setup and data only
+/etc/aivid-health/                 private monitor configuration and certificates
+/etc/systemd/system/aivid-health.service
+/usr/local/bin/aivid-monitor and /usr/local/bin/aivid-healthctl
+Dedicated aivid-health user/group; existing video/render groups may be assigned
+for read-only GPU statistics. Temporary extraction/build directories are removed.
+A running previous monitor is restarted on upgrade; other services are not.
+Port 8282 must be available. Conflicts cause a stop, never termination of its owner.
+
+INSTALLATION / RECOVERY
+Extract this corrected ZIP into a NEW folder. Do not mix its .run/checksum with
+an older downloaded file. In the extracted AIVID-HEALTH directory:
+
+  sha256sum -c AIVID-Health-Monitor.run.sha256
+  sudo bash AIVID-Health-Monitor.run --check
+  sudo bash AIVID-Health-Monitor.run
+
+Only continue to installation if --check succeeds. --check verifies the package
+and imports in a temporary private environment, checks monitor paths and basic
+host access, and makes no persistent installation/service changes. The final
+service-user validation still runs during installation. A check cannot predict
+all site ACL/LSM rules for an account that has not yet been created.
+
+If preflight/installation is blocked:
+
+  sudo bash AIVID-Health-Monitor.run --diagnose
+
+Share that output. It reports OS/OpenSSL/glibc, path modes/ACLs, mount options,
+service-account path access, listener 8282 and monitor service status. It does not
+read node.json, database records, passwords, private keys or setup pairing codes.
+Do not repeat chmod -R 777; do not remove existing monitor setup/data.
+
+AFTER INSTALLATION
+  systemctl is-active aivid-health.service
+  systemctl show aivid-health.service -p CPUQuotaPerSecUSec -p MemoryMax -p TasksMax
+  sudo journalctl -u aivid-health.service -n 40 --no-pager
+
+Open the HTTPS address printed by the installer (port 8282). On cosmos-master,
+if the earlier selected address is unchanged, this is https://192.168.48.13:8282.
+Check kubectl get pods -A and your application normally before/after deployment.
+If immediate suspension is needed: sudo systemctl stop aivid-health.service
+This stops only the newly installed standalone monitor, retaining its data.
+
+VALIDATION LIMITS
+See AIVID_Health_Monitor_Release_Verification.txt for this repair's actual test
+results. The original manuals/dashboard reference are retained for product use;
+these repair notes take precedence for installation and compatibility. Earlier
+release verification reports describe earlier testing, not this repair build.
+No access to aividdemo or cosmos-master was available in this session. Their
+actual OS version, ACLs, AppArmor policies and production performance must still
+be checked at the site. A zero-impact guarantee cannot be made.
+
+TECHNICAL REFERENCES
+https://docs.openssl.org/1.1.1/man1/pkeyutl/
+https://docs.openssl.org/1.1.1/man1/dgst/
+https://www.freedesktop.org/software/systemd/man/systemd.resource-control.html

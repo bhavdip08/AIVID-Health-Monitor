@@ -1,0 +1,83 @@
+AIVID HEALTH MONITOR 1.1.0
+Build 1.1.0-20261009.incidents1 | 9 October 2026
+
+INCIDENT MANAGEMENT
+The sidebar now opens Incidents. Open means an issue is still awaiting confirmed
+recovery. Closed / recovered shows confirmed recoveries from the last 90 days.
+All incidents combines the categories, including explicitly marked incomplete
+older history. Test emails appear only in Email delivery.
+
+Each incident includes server, resource, severity, raised and recovered times,
+duration and a notification timeline. Warning-to-critical escalation keeps one
+incident and its original start time. A recurrence after recovery creates a new
+incident. Closed rows show peak severity. Search and server/severity filters,
+25-row pages and counts use the full retained record, not just 250 recent emails.
+
+A sent or dismissed email never closes an incident. Confirmed recovery closes it
+even when its recovery email is still queued. Missing readings do not count as
+recovery. Dismiss notification affects only that notification's delivery.
+The Overview and sidebar now count the same current Open incidents.
+
+UPGRADE AN EXISTING MONITOR
+Keep your current configuration, database, SMTP settings and server connections.
+Do not run a reset, remove /opt/aivid-health, or delete data for this update.
+The new build ID upgrades the previous installation without the same-build error.
+
+1. Back up the monitor configuration, database and setup keys using your existing
+   backup procedure. Finish any pending server-directory change.
+2. Extract AIVID-HEALTH.zip into a NEW folder. Do not mix with an older installer.
+3. In its AIVID-HEALTH folder, run each command only if the previous one succeeds:
+
+   sha256sum -c AIVID-Health-Monitor.run.sha256
+   sudo bash AIVID-Health-Monitor.run --check
+   sudo bash AIVID-Health-Monitor.run
+   sudo aivid-healthctl status
+
+4. Update every monitor one at a time. Start with standbys, update the current
+   alert sender last, and wait for each server to reconnect. With two members,
+   alerts pause while either is unavailable because a majority is required.
+5. Refresh the dashboard with Ctrl+Shift+R. The footer shows 1.1.0 and the sidebar
+   shows Incidents. Check Open and Closed / recovered. No SMTP re-entry or pairing
+   is required for a normal upgrade. Wait for all members before shared edits.
+
+WHAT IS PRESERVED
+Existing logins, node IDs, TLS identities, peer connections, encrypted SMTP
+credentials, thresholds, branding, email templates and retained history.
+Legacy records are classified on read without rewriting the database or replaying
+completed notifications. New lifecycle fields are additive inside existing peer
+records. No database-schema migration or shared record-format change is required.
+Older history without enough evidence is labelled incomplete rather than guessed.
+
+EARLIER REPAIRS INCLUDED
+- SMTP messages use CRLF line endings and base64 UTF-8 text/HTML alternatives,
+  preserving subjects and embedded logos. No separate email hotfix is needed.
+- Release verification uses RSA-3072/SHA256 and openssl dgst; no -rawin command.
+- Monitor code/configuration permissions, dedicated runtime, offline dependencies,
+  read-only --check/--diagnose and service resource limits remain in place.
+
+SCOPE AND COMPATIBILITY
+Only aivid-health.service is stopped/restarted during the update. No operating
+system, system Python, OpenSSL, GPU driver or global package upgrades are made.
+There are no Docker, Kubernetes, database, application-service, firewall or NAT
+changes. The monitor uses its own runtime and directories, plus its dedicated
+systemd unit, user/group and command links. It consumes normal shared resources;
+zero CPU/RAM/disk/network impact is not promised.
+
+Supported hosts: Linux x86_64, Ubuntu 22.04/24.04 or Debian 12, systemd, sudo,
+and at least 2 GiB free. The bundled dependency set does not support Ubuntu 20.04.
+The port remains HTTPS 8282. Do not change a production OS to install this tool.
+
+Alert coordination is unchanged: three monitors require two communicating members
+and independent observers for an offline alert. A single monitor cannot report
+its own total failure, and two monitors cannot send while one is unavailable.
+SMTP acceptance does not guarantee inbox delivery. Test the monitor service only
+when validating outages; there is no need to shut down unrelated applications.
+
+RELEASE SIGNING AND VERIFICATION
+This rebuild has a new RSA release signing identity. It does not claim the original
+publisher's signature. The public key is bundled; the private key is excluded.
+See the release verification report beside the installer for the exact public-key
+fingerprint, installer digest, packaged tests and validation limits.
+
+The source archive includes the updated manuals, build tools and tests. To rebuild,
+use your organization's approved RSA key as described in docs/DEVELOPMENT.md.

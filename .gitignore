@@ -1,0 +1,60 @@
+# Local Python environments and caches
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage*
+htmlcov/
+
+# Local builds and integration-test state
+/.build/
+/dist/
+/test-output/
+/state/
+/data/
+/setup/
+/generated*/
+*.log
+*.sqlite*
+*.db
+daemon.lock
+node.json
+local.json
+install-state.json
+release.json
+
+# Credentials, private certificates and deployment configuration
+.env
+.env.*
+secrets/
+*.key
+*.pem
+*.p12
+*.pfx
+credentials.txt
+*credentials*.json
+join-codes.json
+enrollment.json
+!packaging/trusted-release-key.pem
+
+# These are generated for each signed release, not source-control inputs
+/RELEASE_MANIFEST.json
+/RELEASE_MANIFEST.sig
+/SHA256SUMS
+/SHA256SUMS.sig
+*.run
+*.run.sha256
+/aivid-health*.tar.gz
+/aivid-health*.tar.gz.sha256
+
+# Editor/OS files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/

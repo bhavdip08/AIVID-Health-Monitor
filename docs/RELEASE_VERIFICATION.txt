@@ -1,0 +1,23 @@
+AIVID HEALTH MONITOR 1.1.0 SOURCE VALIDATION
+Build 1.1.0-20261009.incidents1 | 9 October 2026
+
+Before packaging:
+- 95 Python unit tests: 94 passed, 1 skipped because the test environment cannot
+  create POSIX ACLs. Includes lifecycle, legacy-data classification, recurrence,
+  retention, 250+ notifications, authenticated APIs, installation safety and mail.
+- 37 real three-process HTTPS/SQLite/local-SMTP checks passed; 13 SMTP messages.
+  Covers outage and recovery categories, replication, recurrence, start/identity
+  preservation during failover, primary loss, network partitions, minority
+  suppression and uncertain delivery after a sender crash during SMTP DATA.
+- 12 interface logic checks passed in a DOM fixture against the actual scripts:
+  categories, counts, pagination, filtering, details, escaping and delivery wording.
+- Both Word manuals rendered and all pages visually inspected.
+
+Scope: local synthetic test nodes and local SMTP only. Timings were accelerated
+for acceptance tests. These results do not claim production deployment, physical
+GPU coverage, production SMTP/inbox testing, systemd startup on your hosts, or
+visual browser verification. Browser preview was restricted in this environment.
+
+The report delivered beside AIVID-Health-Monitor.run contains subsequent tests
+against the actual packaged installer and installed wheels, plus final hashes.
+Historical verification and repair notes describe earlier releases only.

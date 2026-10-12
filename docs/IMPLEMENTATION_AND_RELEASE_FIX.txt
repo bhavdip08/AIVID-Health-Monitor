@@ -1,0 +1,116 @@
+HISTORICAL IMPLEMENTATION NOTES
+Current release: see RELEASE_NOTES.txt and RELEASE_VERIFICATION.txt.
+
+ORIGINAL BUILD REFERENCE ONLY: this report predates 20261002.repair1. See REPAIR_NOTES.txt and the outer repair verification report.
+
+AIVID HEALTH MONITOR RELEASE VERIFICATION
+Product 1.0.0 | Build 1.0.0-20261001.branding | 1 October 2026
+
+RESULT: PASS
+
+Automated coverage: 207 checks
+  Unit and API: 73
+  Three-node explicit-priority SMTP: 32
+  Five-node dashboard: 32
+  Signed .run installer and upgrade: 24
+  Installed-release automatic-priority SMTP: 35
+  Desktop and mobile browser: 11
+
+CHANGES VERIFIED
+- Dashboard and emails show the configured server name for affected servers and
+  alert senders. Existing historical event displays also follow server renames.
+  Immutable membership keys remain internal; no certificate rotation is needed.
+- Installation, dashboard changes and command-line reset accept passwords without
+  a minimum length, including empty strings (maximum 256 characters). Hashing,
+  authentication, session expiry, login throttling and CSRF checks remain in use.
+- Two configurable brand identities appear on opposite sides of the header.
+  The supplied AIVID SVG is bundled; email uses an embedded PNG copy.
+  Custom PNG/JPEG/WebP logos are resized in-browser, capped at 256 KB per logo,
+  and stored with replicated settings. Vendor reset and customer removal work.
+- Offline, recovery, resource and test subjects are individually editable, as are
+  email heading, body, footer and accent color. Templates use an allowlist of
+  literal placeholders. Values are HTML-escaped and mail header injection is
+  rejected. Messages contain HTML, a plain-text alternative and embedded logos.
+- Email preview renders the draft in a sandboxed iframe without queueing mail.
+  Subjects, server names, logos and settings survive restart and sender failover.
+- Legacy SMTP/threshold settings gain presentation defaults without mutating
+  the durable record on reads. Legacy local logos up to 256 KB migrate once;
+  restoring the default remains effective after saving.
+- All product communication uses a single HTTPS listener on TCP 8282. SMTP is
+  outbound to the chosen relay. No additional internal monitor port was added.
+
+LIVE FAILURE TESTS
+Both explicit priorities and blank/automatic registration order were tested with
+three independent HTTPS processes, SQLite databases and a local SMTP capture relay.
+For the automatic run, all three nodes were installed from the signed offline
+release before starting the acceptance tests.
+
+Server 1 stopped: server 2 became sender and submitted exactly one offline alert;
+server 3 remained standby. Custom subject, human-readable names and both embedded
+logos were verified in the captured MIME message. Outage/recovery, CPU critical
+and recovery, partitions, rejoining, sender death during SMTP DATA, and majority
+loss were exercised. Each run accepted 11 distinct SMTP Message-IDs. An ambiguous
+send became uncertain instead of being automatically resent. No real recipients
+were contacted.
+
+INSTALLER AND UPGRADE
+The real self-extracting .run installer was exercised under a private umask in
+isolated prefixes, without host systemd. Checks cover short chosen credentials,
+HTTPS login, automatic disks, /opt data storage, terminal/dashboard pairing code
+agreement, same-build reruns, interrupted-install recovery, retained login and
+history, directory membership, and legacy port-443 configuration migration.
+A socket-bind audit of the installed daemon recorded one TCP listener on 8282.
+The service unit no longer requests privileged-port capabilities. Existing unit
+checks also cover failed-install rollback and pending membership migration guards.
+
+BROWSER AND DOCUMENT REVIEW
+Chromium through Qt WebEngine rendered the actual running application. Browser
+checks covered login, three-server Overview, names in Setup, customer logo upload,
+shared settings save, email design and preview, short then empty password changes,
+and 390-pixel mobile layouts (including the email body). There were no JavaScript
+exceptions; the initial unauthenticated session probe correctly returned 401.
+The browser test harness and its debugging port are test-only and are not shipped
+as product listeners or dependencies. No browser/CDN dependency is needed to run
+the monitor itself.
+
+The updated installation and user manuals were rendered and every page visually
+inspected: four installation pages and four user-manual pages.
+
+IDLE RESOURCE SAMPLE
+Five monitors used normal 10-second peer checks, 30-second resource collection,
+60-second GPU cache and at least 60-second history writes. Dashboard closed;
+no NVIDIA hardware was present. Measurements cover 60 seconds after a 20-second
+warmup in this container; they are not a production sizing guarantee.
+  server1: 0.748% of one logical CPU; mean RSS 59.37 MiB; peak 59.83 MiB
+  server2: 0.765% of one logical CPU; mean RSS 58.87 MiB; peak 58.90 MiB
+  server3: 0.582% of one logical CPU; mean RSS 58.78 MiB; peak 59.03 MiB
+  server4: 0.715% of one logical CPU; mean RSS 58.81 MiB; peak 58.88 MiB
+  server5: 0.648% of one logical CPU; mean RSS 59.09 MiB; peak 59.14 MiB
+
+PACKAGE INTEGRITY
+Both application wheels were compared byte-for-byte to their packaged source.
+The offline builder verifies manifest coverage, checksums and file permissions,
+and signs the manifest and checksums. Private deployment state, TLS keys and the
+release signing private key are excluded. The GitHub ZIP contains source, updated
+wheels, offline Python, tests and manuals, without Git history or deployment data.
+Use the .run file for installation; the GitHub tree is for development/rebuilding.
+
+DEPLOYMENT CHECKS STILL REQUIRED
+Production SMTP credentials/relay permissions and inbox receipt; physical NVIDIA
+hardware; public IP/NAT routing and firewall access on 8282; browser certificate
+trust; host systemd startup and service-account behavior on the target machines.
+No changes were made to your Kubernetes services or running application workloads.
+The monitor remains a separate systemd application.
+
+A strict majority must communicate to authorize an alert sender. A standalone
+server cannot email after its own total failure, and two servers pause sending
+when one is down. Whole-site/majority failure needs an external observer. SMTP
+cannot guarantee exactly-once inbox delivery; uncertain submissions need review.
+Upgrade every member before saving new shared branding or email options.
+
+Run on each server to install or upgrade:
+  sha256sum -c AIVID-Health-Monitor.run.sha256
+  sudo bash AIVID-Health-Monitor.run
+
+Open https://SERVER_IP:8282. Configure Appearance and Email design on the current
+alert sender. Server setup controls names, addresses and optional priorities.
