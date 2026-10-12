@@ -1,0 +1,17 @@
+[build-system]
+requires = []
+build-backend = "wheelbuild"
+backend-path = ["."]
+
+[project]
+name = "aivid-health-installer"
+version = "1.1.0"
+description = "AIVID verified offline installer and cluster provisioning"
+requires-python = ">=3.12,<3.13"
+license = {text = "Proprietary"}
+dependencies = ["cryptography==49.0.0", "aivid-health-platform-backend==1.1.0"]
+
+[project.scripts]
+aivid-installer = "aivid_installer.cli:main"
+aivid-cluster-init = "aivid_installer.cluster:main"
+aivid-healthctl = "aivid_installer.healthctl:main"

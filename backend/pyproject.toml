@@ -1,0 +1,15 @@
+[build-system]
+requires = []
+build-backend = "wheelbuild"
+backend-path = ["."]
+
+[project]
+name = "aivid-health-platform-backend"
+version = "1.1.0"
+description = "AIVID three-server resource monitoring and coordinated email alerts"
+requires-python = ">=3.12,<3.13"
+license = {text = "Proprietary"}
+dependencies = ["fastapi==0.116.1", "uvicorn==0.35.0", "httpx==0.28.1", "psutil==7.0.0", "cryptography==49.0.0"]
+
+[project.scripts]
+aivid-monitor = "aivid_health.cli:main"

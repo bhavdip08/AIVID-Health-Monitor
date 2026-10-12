@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "runtimes": {
+    "linux-x86_64": {
+      "implementation": "CPython",
+      "python_version": "3.12.13",
+      "filename": "cpython-3.12.13+20260718-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz",
+      "sha256": "5854aa6ec71cad00334d5065633c210b2e7feb40956767a59a91791cadcf0b79",
+      "strip_components": 1,
+      "source_url": "https://github.com/astral-sh/python-build-standalone/releases/download/20260718/cpython-3.12.13%2B20260718-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz"
+    }
+  }
+}
